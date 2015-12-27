@@ -23,7 +23,7 @@
     "express-session-json-store": "git+https://github.com/ffalt/express-session-json-store.git",
     "gm": "^1.17.0",
     "moment": "^2.8.4",
-    "mongojs": "^0.18.0",
+    "mongojs": "2.2.2",
     "mustache": "^2.1.2",
     "mustache-express": "^1.2.0",
     "nsa": "0.0.5",
