@@ -4,16 +4,16 @@ module.exports = {
 
 	// listen on either a socket or host:port
 	listen: {
-		socket: "lobbyradar.sock",
-		// host: "localhost",
-		// port: 9000
+		//socket: "lobbyradar.sock",
+		 host: "localhost",
+		 port: 9000
 	},
 
 	// mongodb connect string
 	db: "mongodb://127.0.0.1/lobbyradar",
 
 	// network status aggregator
-	nsa: "udp4://<server>:<port>/",
+	//nsa: "udp4://<server>:<port>/",
 
 	api: {
 
