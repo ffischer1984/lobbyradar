@@ -1,4 +1,6 @@
+var prefix = "/lobbyradar";
 function loadList(id) {
+
 	$(".leaflet-control-zoom").css("display", 'block');
 
 	$(".result-single").slideUp("slow");
@@ -22,7 +24,7 @@ function loadList(id) {
 	var $resultName = id;
 
 	if (req) req.abort();
-	req = $.getJSON("/api/autocomplete", {
+	req = $.getJSON(prefix+"/api/autocomplete", {
 		q: id
 	}, function (data) {
 		//console.log(data);
@@ -85,7 +87,7 @@ function loadEntity(id) {
 
 	$("#backtolist").css("display", 'inline-block'); // always show the backbutton
 
-	vis_req = $.getJSON("/api/entity/get/" + id, {relations: true}, function (data) {
+	vis_req = $.getJSON(prefix+"/api/entity/get/" + id, {relations: true}, function (data) {
 		vis_req = null;
 		var content = EntityDisplay.displayEntity(data.result);
 		// clear current view

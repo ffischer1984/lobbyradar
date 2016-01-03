@@ -9,6 +9,8 @@ var mustache = require("mustache-express");
 var session = require('express-session');
 var sessionJSONstore = require('express-session-json-store')(session);
 var express = require("express");
+var router = express.Router();
+
 var mongojs = require("mongojs");
 var moment = require("moment");
 var debug = require("debug")("app");
@@ -17,7 +19,7 @@ var unq = require("unq");
 var nsa = require("nsa");
 var fs = require("fs");
 var favicon = require('serve-favicon');
-
+var prefix = "/lobbyradar";
 // config
 var config = require("./config.js");
 
@@ -89,10 +91,12 @@ app.set("views", path.resolve(__dirname, "assets/views"));
 app.use(favicon(__dirname + '/assets/images/favicon.ico'));
 
 // static assets
-app.use("/assets", express.static(path.resolve(__dirname, "assets")));
+app.use(prefix+"/assets", express.static(path.resolve(__dirname, "assets")));
 
 // static backend
-app.use("/station", express.static(path.resolve(__dirname, "station")));
+app.use(prefix+"/station", express.static(path.resolve(__dirname, "station")));
+
+app.use(prefix+"/lobbynetwork", express.static(path.resolve(__dirname, "lobbynetwork")));
 
 // cookie parser
 app.use(cookieParser(config.secret));
@@ -148,78 +152,78 @@ var nice_error = function (err) {
 };
 
 // index page
-app.all("/", function (req, res) {
+app.all(prefix+"/", function (req, res) {
 	stats.views++;
 	res.render("index", {});
 });
 
 // FAQ Page (static)
-app.get("/oft-gestellte-fragen", function (req, res) {
+app.get(prefix+"/oft-gestellte-fragen", function (req, res) {
 	stats.views++;
 	res.render("faq", {});
 });
 
 // FAQ Page (static)
-app.get("/artikel", function (req, res) {
+app.get(prefix+"/artikel", function (req, res) {
 	stats.views++;
 	res.render("articles", {});
 });
 
 // Abspann Page (static)
-app.get("/abspann", function (req, res) {
+app.get(prefix+"/abspann", function (req, res) {
 	stats.views++;
 	res.render("abspann", {});
 });
 
 // Intro Page (static)
-app.get("/um-was-geht-es", function (req, res) {
+app.get(prefix+"/um-was-geht-es", function (req, res) {
 	stats.views++;
 	res.render("intro", {});
 });
 
 // Abspann Page (static)
-app.get("/download-plugin", function (req, res) {
+app.get(prefix+"/download-plugin", function (req, res) {
 	stats.views++;
 	res.render("extension", {});
 });
 
 // Abspann Page (static)
-app.get("/ueber-uns", function (req, res) {
+app.get(prefix+"/ueber-uns", function (req, res) {
 	stats.views++;
 	res.render("about", {});
 });
 
 // Abspann Page (static)
-app.get("/verbindungssuche", function (req, res) {
+app.get(prefix+"/verbindungssuche", function (req, res) {
 	stats.views++;
 	res.render("app", {});
 });
 
 // Search Page (static)
-app.get("/search/:id", function (req, res) {
+app.get(prefix+"/search/:id", function (req, res) {
 	stats.views++;
 	res.render("app", {});
 });
 
 // Entity page (static)
-app.all("/entity/:id", function (req, res) {
+app.all(prefix+"/entity/:id", function (req, res) {
 	stats.views++;
 	res.render("app", {});
 });
 
 // Relation Viz
-app.get("/relation/:tag", function (req, res) {
+app.get(prefix+"/relation/:tag", function (req, res) {
 	stats.views++;
 	res.render("relation", {});
 });
 
 // default api method.
-app.all("/api", function (req, res) {
+app.all(prefix+"/api", function (req, res) {
 	res.type("json").status("200").json({error: null});
 });
 
 // autocomplete
-app.get("/api/autocomplete", function (req, res) {
+app.get(prefix+"/api/autocomplete", function (req, res) {
 	if (!req.query.hasOwnProperty("q") || req.query.q === null || req.query.q === "") return res.status(200).json([]);
 	api.autocomplete(req.query.q, function (err, result) {
 		res.status(200).json(result);
@@ -227,14 +231,14 @@ app.get("/api/autocomplete", function (req, res) {
 });
 
 // search api, get
-app.get("/api/search-fields", function (req, res) {
+app.get(prefix+"/api/search-fields", function (req, res) {
 	api.search_fields(function (err, result) {
 		res.type("json").status("200").json({err: ((err) ? err.message : null), result: result});
 	});
 });
 
 // search api, get
-app.get("/api/search", function (req, res) {
+app.get(prefix+"/api/search", function (req, res) {
 
 	// sanitize query
 	if (!req.query.hasOwnProperty("q")) return res.type("json").status("200").json({error: "no query", result: []});
@@ -251,7 +255,7 @@ app.get("/api/search", function (req, res) {
 });
 
 // search api, post
-app.post("/api/search", function (req, res) {
+app.post(prefix+"/api/search", function (req, res) {
 
 	// check for query property
 	if (!req.body.hasOwnProperty("q")) return res.type("json").status("200").json({error: "no query", result: []});
@@ -272,7 +276,7 @@ app.post("/api/search", function (req, res) {
 });
 
 // route api, get+post
-app.all("/api/route/:from/:to", function (req, res) {
+app.all(prefix+"/api/route/:from/:to", function (req, res) {
 
 	// perform route search
 	api.route(req.params.from, req.params.to, function (err, result) {
@@ -281,7 +285,7 @@ app.all("/api/route/:from/:to", function (req, res) {
 });
 
 // whitelist
-app.get("/api/plugin/whitelist", function (req, res) {
+app.get(prefix+"/api/plugin/whitelist", function (req, res) {
 	debug("get plugin whitelist");
 	res.set('Content-Type', 'application/json');
 	res.sendfile('whitelist.json', {
@@ -291,7 +295,7 @@ app.get("/api/plugin/whitelist", function (req, res) {
 });
 
 // export.
-app.all("/api/plugin/export", function (req, res) {
+app.all(prefix+"/api/plugin/export", function (req, res) {
 	debug("export");
 	res.set('Content-Type', 'application/json');
 	res.sendfile('entities.json', {
@@ -301,7 +305,7 @@ app.all("/api/plugin/export", function (req, res) {
 });
 
 // whitelist
-app.get("/api/plugin/whitelist-live", function (req, res) {
+app.get(prefix+"/api/plugin/whitelist-live", function (req, res) {
 	debug("get plugin whitelist");
 	api.whitelist_get(function (err, result) {
 		res.type("json").status("200").json({err: ((err) ? err.message : null), result: result});
@@ -309,7 +313,7 @@ app.get("/api/plugin/whitelist-live", function (req, res) {
 });
 
 // export.
-app.all("/api/plugin/export-live", function (req, res) {
+app.all(prefix+"/api/plugin/export-live", function (req, res) {
 	debug("export");
 	api.ent_export(function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -317,7 +321,7 @@ app.all("/api/plugin/export-live", function (req, res) {
 });
 
 // get entity.
-app.all("/api/entity/get/:id", function (req, res) {
+app.all(prefix+"/api/entity/get/:id", function (req, res) {
 	stats.views++;
 	debug("get entity %s", req.params.id);
 	api.ent_get(req.params.id, function (err, result) {
@@ -332,7 +336,7 @@ app.all("/api/entity/get/:id", function (req, res) {
 });
 
 // get entities.
-app.get("/api/entity/list", function (req, res) {
+app.get(prefix+"/api/entity/list", function (req, res) {
 	debug("list entities");
 	api.ent_list(req.query, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -340,7 +344,7 @@ app.get("/api/entity/list", function (req, res) {
 });
 
 // get entities for backend.
-app.get("/api/entity/list2", function (req, res) {
+app.get(prefix+"/api/entity/list2", function (req, res) {
 	debug("list full entities");
 	api.ent_list_full(req.query, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -348,7 +352,7 @@ app.get("/api/entity/list2", function (req, res) {
 });
 
 // entity types.
-app.all("/api/entity/types", function (req, res) {
+app.all(prefix+"/api/entity/types", function (req, res) {
 	debug("entity types");
 	api.ent_types(function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -356,7 +360,7 @@ app.all("/api/entity/types", function (req, res) {
 });
 
 // entity tags.
-app.all("/api/entity/tags", function (req, res) {
+app.all(prefix+"/api/entity/tags", function (req, res) {
 	debug("entity tags");
 	api.ent_tags(function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -364,7 +368,7 @@ app.all("/api/entity/tags", function (req, res) {
 });
 
 // export.
-app.all("/api/entity/export", function (req, res) {
+app.all(prefix+"/api/entity/export", function (req, res) {
 	debug("relation tags");
 	api.ent_export(function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -372,7 +376,7 @@ app.all("/api/entity/export", function (req, res) {
 });
 
 // get relation.
-app.all("/api/relation/get/:id", function (req, res) {
+app.all(prefix+"/api/relation/get/:id", function (req, res) {
 	debug("get relation %s", req.params.id);
 	api.rel_get(req.params.id, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -380,7 +384,7 @@ app.all("/api/relation/get/:id", function (req, res) {
 });
 
 // relation types.
-app.all("/api/relation/types", function (req, res) {
+app.all(prefix+"/api/relation/types", function (req, res) {
 	debug("relation types");
 	api.rel_types(function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -388,7 +392,7 @@ app.all("/api/relation/types", function (req, res) {
 });
 
 // relation tags.
-app.all("/api/relation/tags", function (req, res) {
+app.all(prefix+"/api/relation/tags", function (req, res) {
 	debug("relation tags");
 	api.rel_tags(function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -396,7 +400,7 @@ app.all("/api/relation/tags", function (req, res) {
 });
 
 // relations by tag.
-app.all("/api/relation/tagged/:tag", function (req, res) {
+app.all(prefix+"/api/relation/tagged/:tag", function (req, res) {
 	debug("relations by tag %s", req.params.tag);
 	api.rels_by_tag(req.params.tag, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -404,7 +408,7 @@ app.all("/api/relation/tagged/:tag", function (req, res) {
 });
 
 // list of relations.
-app.all("/api/relation/list", function (req, res) {
+app.all(prefix+"/api/relation/list", function (req, res) {
 	debug("relation list");
 	api.rels_full(req.query, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -412,7 +416,7 @@ app.all("/api/relation/list", function (req, res) {
 });
 
 // get whitelist.
-app.get("/api/whitelist/list", function (req, res) {
+app.get(prefix+"/api/whitelist/list", function (req, res) {
 	debug("list whitelist");
 	api.whitelist_get(function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -420,7 +424,7 @@ app.get("/api/whitelist/list", function (req, res) {
 });
 
 // get fields.
-app.get("/api/fields/list", function (req, res) {
+app.get(prefix+"/api/fields/list", function (req, res) {
 	debug("list fields");
 	api.field_list(req.query.mode, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -428,7 +432,7 @@ app.get("/api/fields/list", function (req, res) {
 });
 
 // get autocomplete for fields.
-app.all("/api/field/autocomplete", function (req, res) {
+app.all(prefix+"/api/field/autocomplete", function (req, res) {
 	debug("get field autocomplete %s", req.query.q);
 	api.field_autocomplete(req.query, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -444,7 +448,7 @@ app.all("/api/fields/get/:id", function (req, res) {
 });
 
 // get fields from entities.
-app.get("/api/fields/entities", function (req, res) {
+app.get(prefix+"/api/fields/entities", function (req, res) {
 	debug("get fields from entities");
 	api.field_ents(function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -452,7 +456,7 @@ app.get("/api/fields/entities", function (req, res) {
 });
 
 // get tags.
-app.all("/api/tags/list", function (req, res) {
+app.all(prefix+"/api/tags/list", function (req, res) {
 	debug("get tags");
 	api.tags(req.query.type, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -460,12 +464,12 @@ app.all("/api/tags/list", function (req, res) {
 });
 
 // current user.
-app.get("/user", sessionUserHandler, function (req, res) {
+app.get(prefix+"/user", sessionUserHandler, function (req, res) {
 	res.type("json").status("200").json({error: null, result: {name: req.user.name, admin: req.user.admin}});
 });
 
 // login user.
-app.post('/login', sessionHandler, function (req, res, next) {
+app.post(prefix+'/login', sessionHandler, function (req, res, next) {
 	passport.authenticate('local', function (err, user, info) {
 		if (err) return next(err);
 		if (!user)  return res.sendStatus(401);
@@ -478,13 +482,13 @@ app.post('/login', sessionHandler, function (req, res, next) {
 });
 
 // logout user.
-app.post('/logout', sessionHandler, function (req, res, next) {
+app.post(prefix+'/logout', sessionHandler, function (req, res, next) {
 	req.logout();
 	res.sendStatus(200);
 });
 
 // get users.
-app.get("/api/users/list", sessionAdminHandler, function (req, res) {
+app.get(prefix+"/api/users/list", sessionAdminHandler, function (req, res) {
 	debug("list users");
 	api.user_list(function (err, result) {
 		result = (!result) ? null : result.map(function (u) {
@@ -500,7 +504,7 @@ app.get("/api/users/list", sessionAdminHandler, function (req, res) {
 });
 
 // delete field.
-app.all("/api/fields/delete/:id", sessionUserHandler, function (req, res) {
+app.all(prefix+"/api/fields/delete/:id", sessionUserHandler, function (req, res) {
 	debug("delete field %s", req.params.id || req.body.id);
 	api.field_delete(req.params.id || req.body.id, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -508,7 +512,7 @@ app.all("/api/fields/delete/:id", sessionUserHandler, function (req, res) {
 });
 
 // create entity.
-app.post("/api/entity/create", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/entity/create", sessionUserHandler, function (req, res) {
 	debug("create entity for \"%s\"", req.body.ent.name);
 	api.ent_create(req.body.ent, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -524,7 +528,7 @@ app.all("/api/users/get/:id", sessionAdminHandler, function (req, res) {
 });
 
 // delete user.
-app.all("/api/users/delete/:id", sessionAdminHandler, function (req, res) {
+app.all(prefix+"/api/users/delete/:id", sessionAdminHandler, function (req, res) {
 	debug("delete user %s", req.params.id || req.body.id);
 	api.user_delete(req.params.id || req.body.id, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -532,7 +536,7 @@ app.all("/api/users/delete/:id", sessionAdminHandler, function (req, res) {
 });
 
 // create user.
-app.post("/api/users/create", sessionAdminHandler, function (req, res) {
+app.post(prefix+"/api/users/create", sessionAdminHandler, function (req, res) {
 	debug("create user", req.body.user);
 	api.user_create(req.body.user, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -540,7 +544,7 @@ app.post("/api/users/create", sessionAdminHandler, function (req, res) {
 });
 
 // update user.
-app.post("/api/users/update/:id", sessionAdminHandler, function (req, res) {
+app.post(prefix+"/api/users/update/:id", sessionAdminHandler, function (req, res) {
 	debug("update user %s", req.params.id || req.body.id);
 	api.user_update(req.params.id || req.body.id, req.body.user, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -548,7 +552,7 @@ app.post("/api/users/update/:id", sessionAdminHandler, function (req, res) {
 });
 
 // create whitelist.
-app.post("/api/whitelist/create", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/whitelist/create", sessionUserHandler, function (req, res) {
 	debug("create whitelist entry", req.body.site);
 	api.whitelist_add(req.body.site, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -564,7 +568,7 @@ app.post("/api/whitelist/update", sessionUserHandler, function (req, res) {
 });
 
 // delete whitelist.
-app.post("/api/whitelist/delete", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/whitelist/delete", sessionUserHandler, function (req, res) {
 	debug("delete whitelist entry %s", req.body.site);
 	api.whitelist_remove(req.body.site, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -572,7 +576,7 @@ app.post("/api/whitelist/delete", sessionUserHandler, function (req, res) {
 });
 
 // create field.
-app.post("/api/fields/create", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/fields/create", sessionUserHandler, function (req, res) {
 	debug("create field", req.body.field);
 	api.field_create(req.body.field, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -580,7 +584,7 @@ app.post("/api/fields/create", sessionUserHandler, function (req, res) {
 });
 
 // update field.
-app.post("/api/fields/update/:id", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/fields/update/:id", sessionUserHandler, function (req, res) {
 	debug("update field %s", req.params.id || req.body.id);
 	api.field_update(req.params.id || req.body.id, req.body.field, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -588,7 +592,7 @@ app.post("/api/fields/update/:id", sessionUserHandler, function (req, res) {
 });
 
 // set tags on multiple entities.
-app.post("/api/relation/multitags", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/relation/multitags", sessionUserHandler, function (req, res) {
 	debug("multitags relation");
 	api.rel_multitags(req.body.mode, req.body.tag, req.body.ids, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -604,7 +608,7 @@ app.post("/api/entity/delete/:id", sessionUserHandler, function (req, res) {
 });
 
 // update entity.
-app.post("/api/entity/update/:id", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/entity/update/:id", sessionUserHandler, function (req, res) {
 	debug("update entity %s", req.params.id || req.body.id);
 	api.ent_update(req.params.id || req.body.id, req.body.ent, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -612,7 +616,7 @@ app.post("/api/entity/update/:id", sessionUserHandler, function (req, res) {
 });
 
 // upmerge entity.
-app.post("/api/entity/upmerge/:id", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/entity/upmerge/:id", sessionUserHandler, function (req, res) {
 	debug("upmerge entity %s", req.params.id || req.body.id);
 	api.ent_upmerge(req.params.id || req.body.id, req.body.ent, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -620,7 +624,7 @@ app.post("/api/entity/upmerge/:id", sessionUserHandler, function (req, res) {
 });
 
 // merge entities.
-app.post("/api/entity/merge", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/entity/merge", sessionUserHandler, function (req, res) {
 	debug("merge entity %s", req.body.ids);
 	api.ent_merge(req.body.ids, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -628,7 +632,7 @@ app.post("/api/entity/merge", sessionUserHandler, function (req, res) {
 });
 
 // set tags on multiple entities.
-app.post("/api/entity/multitags", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/entity/multitags", sessionUserHandler, function (req, res) {
 	debug("multitags");
 	api.ent_multitags(req.body.mode, req.body.tag, req.body.ids, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -636,7 +640,7 @@ app.post("/api/entity/multitags", sessionUserHandler, function (req, res) {
 });
 
 // create relation.
-app.post("/api/relation/create", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/relation/create", sessionUserHandler, function (req, res) {
 	debug("create relation");
 	api.rel_create(req.body.rel || req.body.relation, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -644,7 +648,7 @@ app.post("/api/relation/create", sessionUserHandler, function (req, res) {
 });
 
 // delete relation.
-app.post("/api/relation/delete/:id", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/relation/delete/:id", sessionUserHandler, function (req, res) {
 	debug("delete relation %s", req.params.id || req.body.id);
 	api.rel_delete(req.params.id || req.body.id, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -652,7 +656,7 @@ app.post("/api/relation/delete/:id", sessionUserHandler, function (req, res) {
 });
 
 // update relation.
-app.post("/api/relation/update/:id", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/relation/update/:id", sessionUserHandler, function (req, res) {
 	debug("update relation %s", req.params.id || req.body.id);
 	api.rel_update(req.params.id || req.body.id, req.body.rel || req.body.relation, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -660,7 +664,7 @@ app.post("/api/relation/update/:id", sessionUserHandler, function (req, res) {
 });
 
 // upmerge relation.
-app.post("/api/relation/upmerge/:id", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/relation/upmerge/:id", sessionUserHandler, function (req, res) {
 	debug("upmerge relation %s", req.params.id || req.body.id);
 	api.rel_upmerge(req.params.id || req.body.id, req.body.rel, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
@@ -668,70 +672,70 @@ app.post("/api/relation/upmerge/:id", sessionUserHandler, function (req, res) {
 });
 
 // list imports.
-app.get("/api/update/entity/list", sessionUserHandler, function (req, res) {
+app.get(prefix+"/api/update/entity/list", sessionUserHandler, function (req, res) {
 	debug("list imports");
 	api.update_list(function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
 	});
 });
 
-app.get("/api/update/entity/get/:id", sessionUserHandler, function (req, res) {
+app.get(prefix+"/api/update/entity/get/:id", sessionUserHandler, function (req, res) {
 	debug("get update ", req.params.id);
 	api.update_entity_info_id(req.params.id, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
 	});
 });
 
-app.post("/api/update/entity/delete/:id", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/update/entity/delete/:id", sessionUserHandler, function (req, res) {
 	debug("delete update ", req.params.id || req.body.id);
 	api.update_ent_delete(req.params.id || req.body.id, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
 	});
 });
 
-app.post("/api/update/entity/apply/:id", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/update/entity/apply/:id", sessionUserHandler, function (req, res) {
 	debug("apply entity update ", req.params.id || req.body.id);
 	api.update_ent_apply(req.params.id || req.body.id, req.params.data_id || req.body.data_id, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
 	});
 });
 
-app.post("/api/update/entity/choose/:id", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/update/entity/choose/:id", sessionUserHandler, function (req, res) {
 	debug("choose update entity %s", req.params.id || req.body.id);
 	api.update_ent_choose(req.params.id || req.body.id, req.body.ent, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
 	});
 });
 
-app.post("/api/update/entity/save/:id", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/update/entity/save/:id", sessionUserHandler, function (req, res) {
 	debug("save update entity %s", req.params.id || req.body.id);
 	api.update_ent_update(req.params.id || req.body.id, req.body.ent, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
 	});
 });
 
-app.post("/api/update/relation/delete/:id", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/update/relation/delete/:id", sessionUserHandler, function (req, res) {
 	debug("delete update relation ", req.params.id || req.body.id);
 	api.update_rel_delete(req.params.id || req.body.id, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
 	});
 });
 
-app.post("/api/update/relation/apply/:id", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/update/relation/apply/:id", sessionUserHandler, function (req, res) {
 	debug("apply relation data update ", req.params.id || req.body.id);
 	api.update_rel_apply(req.params.id || req.body.id, req.params.data_id || req.body.data_id, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
 	});
 });
 
-app.post("/api/update/entity/create/:id", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/update/entity/create/:id", sessionUserHandler, function (req, res) {
 	debug("create update entity", req.params.id || req.body.id);
 	api.update_ent_create(req.params.id || req.body.id, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});
 	});
 });
 
-app.post("/api/update/relation/create/:id", sessionUserHandler, function (req, res) {
+app.post(prefix+"/api/update/relation/create/:id", sessionUserHandler, function (req, res) {
 	debug("create update relation", req.params.id || req.body.id);
 	api.update_rel_create(req.params.id || req.body.id, function (err, result) {
 		res.type("json").status("200").json({error: nice_error(err), result: result});

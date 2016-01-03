@@ -3,7 +3,7 @@
  */
 
 $(document).ready(function () {
-
+	var prefix = "/lobbyradar";
 	var trans_x = 0,
 		trans_y = 0;
 	var g;
@@ -27,7 +27,7 @@ $(document).ready(function () {
 
 	// ruestung, verkehr, pharma, bank, seitenwechsler
 	var url = window.location.href; // get the url
-	var id = url.split("/")[4]; // extract ID
+	var id = url.split("/")[url.split("/").length - 1]; // extract ID which should be the last item ;)
 	if (id == '') id = 'ruestung';
 
 	// we change the selected value from the dropdown to current relation
@@ -35,7 +35,7 @@ $(document).ready(function () {
 	// we inserted an empty option to prevent flickering and now we remove it
 	$("form.theme-switch select option[value='']").remove();
 
-	req = $.getJSON("/api/relation/tagged/" + id, function (data) {
+	req = $.getJSON(prefix+"/api/relation/tagged/" + id, function (data) {
 		var links = [];
 		var nodes = {};
 
@@ -225,7 +225,7 @@ $(document).ready(function () {
 		$('.fullscreen').animate({scrollTop: 0});
 		$("#backtolist").css("display", 'inline-block'); // always show the backbutton
 
-		req = $.getJSON("/api/entity/get/" + id, {relations: true}, function (data) {
+		req = $.getJSON(prefix+"/api/entity/get/" + id, {relations: true}, function (data) {
 			req = null;
 			var content = EntityDisplay.displayEntity(data.result);
 			// clear current view
